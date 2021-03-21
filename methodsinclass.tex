@@ -1,0 +1,64 @@
+\section{Testing methods in a class}
+
+This section will talk about how to test methods in a class. \\
+\subsection{Create a class}
+Let's create a simple class called \verb!Person!.
+Paste the following code into a new \emph{test.cpp} file:
+\begin{Verbatim}[frame=single]
+#include <gtest/gtest.h> // including the library
+
+// everything is made public to make this easy
+
+class Person
+{
+public:
+    Person()
+      : age_(0)
+    {}
+    void add_age(int x)
+    {
+        age_ += x;
+    }
+    int age_;
+};
+
+int main(int argc, char **argv)
+{
+    testing::InitGoogleTest(&argc, argv); // initializing it
+    return RUN_ALL_TESTS(); // this will run all your tests
+}
+  
+\end{Verbatim}
+
+Now let's test the methods of this class. You must have guessed that testing
+this would require us to create an object and call it's methods.
+
+\newpage
+
+\subsection{Testing constructors}
+For instance, the following would be one of the ways to test the constructor:
+
+\begin{Verbatim}[frame=single]
+TEST(PersonTest, InitializationTest)
+{
+    Person p;
+    EXPECT_EQ(p.age_, 0);
+}
+\end{Verbatim}
+
+\subsection{Testing other methods}
+For instance, the following would be one of the ways to test other methods:
+\begin{Verbatim}[frame=single]
+TEST(PersonTest, AddAgeTest)
+{
+    Person p;
+    p.add_age(10);
+    EXPECT_EQ(p.age_, 10);
+}
+\end{Verbatim}
+
+This will be it for testing methods in the class. Testing a customized object
+can be simplified further using \emph{Test Fixture} which is discussed in the
+next section.
+
+\newpage

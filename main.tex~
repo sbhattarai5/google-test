@@ -1,0 +1,52 @@
+\input{myarticlepreamble.tex}
+\input{yliow}
+
+\begin{document}
+\topmatter
+
+
+Valgrind can only really detect two types of errors: use of illegal address and use
+of undefined values.
+
+
+\newpage
+\section{Use of uninitialized values}
+\begin{python}
+import os, sys
+from latextool_basic import *
+
+def readfile(f):
+    return file(f,'r').read()
+    
+def writefile(f, s):
+    file(f, 'w').write(s)
+    
+s = r'''
+int main()
+{
+     int i;
+     int j = i; 
+}
+'''.strip()
+writefile('tmp12345678.cpp', s)
+os.system('g++ tmp12345678.cpp')
+os.system(r'valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 ./a.out >& valgrind.txt')
+s = readfile('valgrind.txt').strip()
+print r'''
+{\small
+%s
+}
+''' % console(s)
+\end{python}
+
+
+\begin{console}
+valgrind --tool=memcheck --leak-check=yes --show-reachable=yes 
+         --num-callers=20 --track-fds=yes ./a.out
+\end{console}
+\begin{console}
+valgrind --tool=memcheck --leak-check=yes --show-reachable=yes 
+         --num-callers=20 --track-fds=yes -v ./a.out
+\end{console}
+
+\end{document}

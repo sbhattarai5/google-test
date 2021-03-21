@@ -1,0 +1,31 @@
+\section{Testing Pointers}
+
+Testing pointers is exactly similar to the previous syntax. Let's see an
+example.
+
+\begin{Verbatim}[frame=single]
+void allocate(int *p)
+{
+    p = new int;
+}
+\end{Verbatim}
+
+We have created an \verb!allocate! function, which allocates memory to
+pointer \verb!p! from the heap and now we want to test it if the memory was
+assigned. \\
+
+The following will do the job:
+\begin{Verbatim}[frame=single]
+TEST(AllocateTest, NullPtrReplacement)
+{
+    int *p = nullptr;
+    allocate(p);
+    EXPECT_NE(p, nullptr);
+}
+\end{Verbatim}
+
+\textit{Note: } While doing pointer comparisions, GoogleTest prefers
+\verb!nullptr! over \verb!NULL!. Read
+\href{https://github.com/google/googletest/blob/master/googletest/docs/faq.md}
+     {here} for more details.
+\newpage

@@ -1,0 +1,171 @@
+\section{Test Fixture}
+
+In this section, we will talk about \emph{Test Fixture}. As I have already
+mentioned, this is useful when we use same data configuration of objects for
+multiple tests.
+
+\subsection{Let's create and test a Singly Linked List class}
+Copy and paste the following code in a file called \verb!linkedlist.cpp!:
+\begin{Verbatim}[frame=single]
+#include <gtest/gtest.h> // including the library
+
+// everything is made public to make this easy
+
+template <typename T>
+class Node      
+{
+public:
+    Node(T val, Node< T > *next=NULL)
+        : val_(val), next_(next)
+    {}
+    T val_;
+    Node< T > *next_;
+};
+
+template <typename T>
+class LinkedList
+{
+public:
+    LinkedList()
+        : head_(NULL)
+    {}
+    ~LinkedList()
+    {
+        while (head_ != NULL)
+        {
+            Node < T > * head = head_->next_;
+            delete head_;
+            head_ = head;
+        }
+    }
+
+
+    void print() const
+    {
+        Node< T > *cptr = head_;
+        while (cptr != NULL)
+        {
+            std::cout << cptr->val_ << ' ';
+            cptr = cptr->next_;
+        }
+        std::cout << std::endl;
+    }
+    void addtohead(T val)
+    {
+        head_ = new Node< T >(val, head_);
+    }
+    Node< T > * deletehead() // returns pointer to the deleted node
+    {
+        if (head_ == NULL) return NULL;
+        Node< T > * head = head_;
+        head_ = head_ -> next_;
+        return head;
+    }
+    Node< T > *head_;
+};
+
+int main(int argc, char **argv)
+{
+    testing::InitGoogleTest(&argc, argv); // initializing it
+    return RUN_ALL_TESTS(); // this will run all your tests
+}
+\end{Verbatim}
+
+It should be clear that to test a \emph{non-empty linked list} we need to create a linked list and add elements to it, and then test if the member functions work correctly. \\
+Testing \verb!addtohead! in a non-empty list:
+\begin{Verbatim}[frame=single]
+TEST(LinkedListTest, AddToNonEmptyListTest)
+{
+    LinkedList< int > ll;
+    ll.addtohead(5);
+    ASSERT_NE(ll.head_, nullptr);
+    EXPECT_EQ(5, ll.head_->val_);
+}
+\end{Verbatim}
+
+\subsection{Example of ASSERT vs. EXPECT}
+Notice that I used \verb!ASSERT! for checking if the head is \verb!nullptr!,
+because there is no point on continuing if the head is \verb!nullptr!, because
+you'll be dereferencing a \verb!nullptr! later. \\
+Testing \verb!deletehead! from a non-empty list:
+\begin{Verbatim}[frame=single]
+TEST(LinkedListTest, DeleteFromNonEmptyListTest)
+{
+    LinkedList< int > ll;
+    ll.addtohead(5);
+    Node< int > *n = ll.deletehead();
+    ASSERT_NE(n, nullptr);
+    EXPECT_EQ(n->val_, 5);
+    delete n;
+}
+\end{Verbatim}
+
+However, the customization can be collected up and simplified. See next section.
+
+
+\subsection{Creating a test fixture class}
+We need to create a test fixture class and make our customized objects as the
+member of that class. To create a test fixture clas, we derive a class from \verb!::testing::Test!. \\
+Let's look at an example. For testing non-empty linked list, like our example in last section, we will do this:
+\begin{Verbatim}[frame=single]
+class NonEmptyLinkedListTest : public ::testing::Test
+{
+public:
+    NonEmptyLinkedListTest()
+      : ll1(new LinkedList< int >)
+    {
+        ll1->addtohead(5);
+    }
+    ~NonEmptyLinkedListTest()
+    {
+        delete ll1;
+    }
+    LinkedList< int > * ll1;
+};
+\end{Verbatim}
+
+\newpage
+\subsection{Syntax and usage}
+Now, syntax for creating a test using test fixture looks like the following:
+
+\begin{Verbatim}[frame=single]
+TEST_F(TestFixtureName, TestName)
+{
+    ... test body ...
+}  
+\end{Verbatim}
+\emph{Note: }The TestFixtureName argument should be same as the Test Fixture
+class name that we define for customizing object.
+
+In our case, our test looks like:
+\begin{Verbatim}[frame=single]
+TEST_F(NonEmptyLinkedListTest, AddToHeadTest)
+{
+    ASSERT_NE(ll1->head_, nullptr);
+    EXPECT_EQ(5, ll1->head_->val_);
+}
+\end{Verbatim}
+Using \texttt{TEST\textunderscore F()} will automatically create the text
+fixture object for you, therefore, you can directly refer to the members in it.
+\\ \\
+For testing \texttt{deletehead},
+\begin{Verbatim}[frame=single]
+TEST_F(NonEmptyLinkedListTest, DeleteHeadTest)
+{
+    Node< int > *n = ll1->deletehead();
+    ASSERT_NE(n, nullptr);
+    EXPECT_EQ(n->val_, 5);
+    delete n;
+}
+\end{Verbatim}
+
+\emph{Note: }For each tests define with \texttt{TEST\textunderscore F()},
+google test creates a fresh test fixture object. In our case, an object of
+\texttt{NonEmptyLinkedLinkedTest} was freshly created for both
+\texttt{AddToHeadTest} and \texttt{DeleteHeadTest}. \\
+
+Furthermore, we can also define any methods inside test fixture class we want our tests to use. \\
+
+\newpage
+
+
